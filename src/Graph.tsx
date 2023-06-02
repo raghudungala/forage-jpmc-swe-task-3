@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Table } from '@finos/perspective';
+import { Table, TableData } from '@finos/perspective';
 import { ServerRespond } from './DataStreamer';
 import { DataManipulator } from './DataManipulator';
 import './Graph.css';
@@ -23,10 +23,13 @@ class Graph extends Component<IProps, {}> {
     const elem = document.getElementsByTagName('perspective-viewer')[0] as unknown as PerspectiveViewerElement;
 
     const schema = {
-      stock: 'string',
-      top_ask_price: 'float',
-      top_bid_price: 'float',
+      price_abc: 'float',
+      price_def: 'float',
       timestamp: 'date',
+      ratio:'float',
+      lower_bound:'float',
+      upper_bound:'float',
+      tigger_alert:'float'
     };
 
     if (window.perspective && window.perspective.worker()) {
@@ -36,14 +39,15 @@ class Graph extends Component<IProps, {}> {
       // Load the `table` in the `<perspective-viewer>` DOM reference.
       elem.load(this.table);
       elem.setAttribute('view', 'y_line');
-      elem.setAttribute('column-pivots', '["stock"]');
-      elem.setAttribute('row-pivots', '["timestamp"]');
-      elem.setAttribute('columns', '["top_ask_price"]');
-      elem.setAttribute('aggregates', JSON.stringify({
-        stock: 'distinctcount',
-        top_ask_price: 'avg',
-        top_bid_price: 'avg',
-        timestamp: 'distinct count',
+      elem.setAttribute('row-pivots', '["timestamp"]')
+      elem.setAttribute('columns', '["ratio", "lower_bound", "upper_bound", "tigger_alert"]')
+      elem.setAttribute('aggregates', JSON.stringify({price_abc:'avg',
+      price_def:'avg', 
+      ratio:'avg', 
+      timestamp:'distinct count',
+      lower_bound:'avg',
+      upper_bound:'avg',
+      tigger_alert:'avg'
       }));
     }
   }
@@ -51,7 +55,7 @@ class Graph extends Component<IProps, {}> {
   componentDidUpdate() {
     if (this.table) {
       this.table.update(
-        DataManipulator.generateRow(this.props.data),
+        [DataManipulator.generateRow(this.props.data)] as unknown as TableData
       );
     }
   }
